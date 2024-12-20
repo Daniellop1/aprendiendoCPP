@@ -138,6 +138,39 @@ public:
     Matrix operator/(const Matrix& other) {
         return *this * other.inverse();
     }
+
+    // Triangularizar una matriz (forma escalonada)
+    Matrix triangular() const {
+        Matrix result = *this;
+        for (int i = 0; i < rows; ++i) {
+            // Encontrar el pivote
+            if (result.at(i, i) == 0) {
+                for (int k = i + 1; k < rows; ++k) {
+                    if (result.at(k, i) != 0) {
+                        swap(result.data[i], result.data[k]);
+                        break;
+                    }
+                }
+            }
+
+            // Normalizar el pivote
+            double pivot = result.at(i, i);
+            if (pivot != 0) {
+                for (int j = i; j < cols; ++j) {
+                    result.at(i, j) /= pivot;
+                }
+            }
+
+            // Eliminar elementos debajo del pivote
+            for (int k = i + 1; k < rows; ++k) {
+                double factor = result.at(k, i);
+                for (int j = i; j < cols; ++j) {
+                    result.at(k, j) -= factor * result.at(i, j);
+                }
+            }
+        }
+        return result;
+    }
 };
 
 // Función principal
@@ -150,8 +183,10 @@ int main() {
     cout << "2. Restar matrices\n";
     cout << "3. Multiplicar matrices\n";
     cout << "4. Dividir matrices\n";
-    cout << "5. Salir\n";
-    cout << "===========================================\n";
+    cout << "5. Triangularizar matriz\n";
+    cout << "-------------------------------------------\n";
+    cout << "6. Salir\n";
+    cout << "-------------------------------------------\n";
 
     int opcion;
     cout << "Opción: ";
@@ -188,18 +223,34 @@ int main() {
                 cout << "Resultado de la multiplicación:\n";
                 C.print();
             } else if (opcion == 4) {
-                if (c1 != r2 || r2 != c2) throw invalid_argument("La matriz B debe ser cuadrada y compatible para la división.");
+                if (c1 != r2) throw invalid_argument("El número de columnas de A debe ser igual al número de filas de B para la división.");
                 Matrix C = A / B;
                 cout << "Resultado de la división:\n";
                 C.print();
             }
         } catch (const exception& e) {
-            cerr << e.what() << endl;
+            cerr << "Error: " << e.what() << endl;
         }
+    } else if (opcion == 5) {
+        int r, c;
+        cout << "Introduce las dimensiones de la matriz (filas columnas): ";
+        cin >> r >> c;
+        Matrix A(r, c);
+        cout << "Matriz:\n";
+        A.input();
+
+        try {
+            Matrix T = A.triangular();
+            cout << "Matriz triangularizada:\n";
+            T.print();
+        } catch (const exception& e) {
+            cerr << "Error: " << e.what() << endl;
+        }
+    } else if (opcion == 6) {
+        cout << "Saliendo del programa...\n";
+    } else {
+        cout << "Opción no válida.\n";
     }
 
-    cout << "===========================================\n";
-    cout << "           PROGRAMA TERMINADO              \n";
-    cout << "===========================================\n";
     return 0;
 }
